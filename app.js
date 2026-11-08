@@ -3,8 +3,8 @@
   const HOLD_MS = 450;
 
   const PALETTE = [
-    '#e63946', '#2a9d8f', '#f1a208', '#457b9d', '#8338ec',
-    '#ff6d00', '#06d6a0', '#ef476f', '#118ab2', '#9b5de5',
+    '#0062b3', '#0ba627', '#ffc400', '#c90000', '#6109e4',
+    '#ff6200', '#00ffea', '#f3528a', '#9bee0b', '#509cff',
   ];
 
   const setupScreen = document.getElementById('setup-screen');
