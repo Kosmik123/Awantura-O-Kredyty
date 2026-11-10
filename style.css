@@ -284,9 +284,18 @@ html, body {
   font-weight: 700;
 }
 
+/* Odpowiadająca drużyna: gruby biały brzeg (wewnętrzny, bez przesuwania układu), poświata
+   i pulsowanie jasności tła przez cały czas odpowiadania. */
 .team-box.answering {
   border-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 24px rgba(255,255,255,0.25);
+  box-shadow: inset 0 0 0 6px #ffffff, 0 0 24px rgba(255,255,255,0.5);
+  z-index: 1;
+  animation: answering-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes answering-pulse {
+  from { filter: brightness(0.85); }
+  to   { filter: brightness(1.6); }
 }
 
 .team-box.answering .name,
