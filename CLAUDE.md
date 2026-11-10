@@ -47,4 +47,5 @@ Wkłady (`contributions`) i `leaderIdx` zerują się przy wejściu w każdą now
 - `e.repeat` jest ignorowane, żeby przytrzymanie nie spamowało licytacji.
 - Stan gry jest tylko w pamięci (`state`), bez zapisu. Przycisk „Nowa gra" czyści go i wraca do ekranu startowego. `?` pokazuje panel z zasadami klawiatury.
 - Styl kolumn drużyn (`.team-box`, `.contribution-box`): razem tworzą jedną tabelę (bez odstępów, sąsiednie ramki współdzielą brzeg, wiersz wkładów styka się z wierszem drużyn), prostokąty bez zaokrągleń, biała ramka i biały tekst z ciemnym cieniem (`text-shadow`, dla czytelności na jasnych kolorach), wypełnienie to pionowy gradient: kolor drużyny w środku, o 40% ciemniejszy u góry i u dołu (`color-mix` ze zmienną CSS `--team-color` ustawianą w `render()`). Przegrana drużyna jest wyszarzona filtrem CSS (`.eliminated`).
+- Bounce liczb (`@keyframes bounce`, klasa `.bump`, ok. 0,5 s): pula (`bumpPool()` restartuje animację) i wkład drużyny, który wzrósł od poprzedniego renderu (`lastContributions` w `render()`).
 - Teksty w interfejsie są po polsku, a liczby formatowane przez `toLocaleString('pl-PL')`.

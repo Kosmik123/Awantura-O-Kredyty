@@ -23,6 +23,8 @@
 
   /** @type {{teams: {name:string, color:string, capital:number, eliminated:boolean}[], ante:number, phase: 'waiting'|'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
+  // Wkłady z poprzedniego renderu: drużyna, której wkład wzrósł, dostaje animację bounce.
+  let lastContributions = null;
 
   function keyLabelForIndex(i) {
     return i === 9 ? '0' : String(i + 1);
@@ -82,6 +84,7 @@
       teams.push({ name, color: PALETTE[i], capital, eliminated: false });
     }
 
+    lastContributions = null;
     state = {
       teams,
       ante,
@@ -292,10 +295,13 @@
         box.className = 'contribution-box';
         box.style.setProperty('--team-color', team.color);
         if (team.eliminated) box.classList.add('eliminated');
-        box.innerHTML = `<div class="amount">${fmt(state.contributions[i])}</div>`;
+        const increased = lastContributions && state.contributions[i] > lastContributions[i];
+        box.innerHTML = `<div class="amount${increased ? ' bump' : ''}">${fmt(state.contributions[i])}</div>`;
         contributionsRow.appendChild(box);
       });
     }
+
+    lastContributions = state.contributions.slice();
 
     teamsRow.innerHTML = '';
     state.teams.forEach((team, i) => {
