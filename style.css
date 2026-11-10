@@ -244,14 +244,14 @@ html, body {
 
 .team-box .name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .team-box .capital {
-  font-size: 1.15rem;
+  font-size: 2.3rem;
   font-weight: 700;
 }
 
