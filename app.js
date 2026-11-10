@@ -21,7 +21,7 @@
   const contributionsRow = document.getElementById('contributions-row');
   const teamsRow = document.getElementById('teams-row');
 
-  /** @type {{teams: {name:string, color:string, capital:number, eliminated:boolean}[], ante:number, phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
+  /** @type {{teams: {name:string, color:string, capital:number, eliminated:boolean}[], ante:number, phase: 'waiting'|'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
 
   function keyLabelForIndex(i) {
@@ -85,14 +85,14 @@
     state = {
       teams,
       ante,
-      phase: 'bidding',
+      phase: 'waiting',
       pool: 0,
       contributions: teams.map(() => 0),
       leaderIdx: null,
       answeringTeamId: null,
     };
 
-    collectAnte();
+    enterWaitingRound();
     setupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     render();
@@ -118,6 +118,7 @@
   // Wkład drużyny staje się o `amount` większy od najwyższego wkładu innej drużyny.
   // Nic się nie dzieje, jeśli drużyna już prowadzi albo nie stać jej na przebicie.
   function bid(idx, amount) {
+    if (state.phase !== 'bidding') return;
     const team = state.teams[idx];
     const target = maxOtherContribution(idx) + amount;
     const needed = target - state.contributions[idx];
@@ -134,6 +135,7 @@
   // Niedozwolony, gdy po wrzuceniu całego kapitału wkład drużyny nie byłby wyższy
   // od najwyższego wkładu innej drużyny.
   function vaBanque(idx) {
+    if (state.phase !== 'bidding') return;
     const team = state.teams[idx];
     const actual = team.capital;
     if (actual <= 0) return;
@@ -156,7 +158,7 @@
   function awardPoolToTeam(idx) {
     state.teams[idx].capital += state.pool;
     state.pool = 0;
-    startNewBiddingRound();
+    enterWaitingRound();
   }
 
   // Drużyna, która nie ma co najmniej wpisowego + BID_STEP, nie jest w stanie
@@ -167,34 +169,44 @@
     });
   }
 
-  // Wpisowe: na początku każdej rundy każda drużyna, która jeszcze gra, automatycznie
-  // wpłaca do puli tyle samo. Nie liczy się do wkładów w licytacji.
+  // Wpisowe: po naciśnięciu spacji na początku rundy każda drużyna, która jeszcze gra,
+  // wpłaca do puli tyle samo. Wpisowe jest częścią wkładu drużyny (`contributions`).
   function collectAnte() {
-    eliminateBrokeTeams();
-    state.teams.forEach((team) => {
+    state.teams.forEach((team, i) => {
       if (team.eliminated) return;
-      const paid = state.ante;
-      team.capital -= paid;
-      state.pool += paid;
+      team.capital -= state.ante;
+      state.pool += state.ante;
+      state.contributions[i] += state.ante;
     });
   }
 
-  function startNewBiddingRound() {
-    state.phase = 'bidding';
+  // Nowa runda czeka na spację, która pobierze wpisowe i otworzy licytację.
+  function enterWaitingRound() {
+    state.phase = 'waiting';
     state.answeringTeamId = null;
     state.contributions = state.teams.map(() => 0);
     state.leaderIdx = null;
+    eliminateBrokeTeams();
+    render();
+  }
+
+  function startBidding() {
     collectAnte();
+    state.phase = 'bidding';
     bumpPool();
     render();
   }
 
   function handleSpace() {
     if (!state) return;
-    if (state.phase === 'bidding') {
+    if (state.phase === 'waiting') {
+      startBidding();
+    } else if (state.phase === 'bidding') {
       endBidding();
     } else if (state.phase === 'answering') {
-      startNewBiddingRound();
+      // zła odpowiedź: ta sama spacja otwiera kolejną rundę i pobiera wpisowe
+      enterWaitingRound();
+      startBidding();
     }
   }
 
@@ -238,6 +250,8 @@
       }
       return;
     }
+
+    if (record.phase !== 'bidding') return;
 
     record.timer = setTimeout(() => {
       record.vaBanque = true;
