@@ -24,16 +24,17 @@ Ekran startowy: liczba drużyn (1–10), nazwy drużyn (domyślnie „Drużyna N
 Gra ma dwie fazy (`state.phase`):
 
 1. **`bidding` (licytacja)**
-   - Krótkie naciśnięcie klawisza drużyny wrzuca do puli `BID_STEP` (100) kredytów, ale nie więcej niż ma drużyna. Liczy się przy puszczeniu klawisza.
-   - Przytrzymanie klawisza dłużej niż `HOLD_MS` (450 ms) to **va bank**: cały kapitał drużyny idzie do puli, a drużyna dostaje flagę `allIn`.
+   - Krótkie naciśnięcie klawisza drużyny to **przebicie**: wkład drużyny staje się o `BID_STEP` (100) większy od najwyższego wkładu *innej* drużyny (np. drużyna 1 ma 500, więc `2` daje drużynie 2 wkład 600, a do puli trafia tylko brakująca różnica). Liczy się przy puszczeniu klawisza.
+   - Nic się nie dzieje, gdy drużyna już prowadzi (nie można przebijać samego siebie) albo nie stać jej na przebicie (wtedy zostaje va bank). Przy jednej drużynie też nie da się przebić ponad pierwsze 100.
+   - Przytrzymanie klawisza dłużej niż `HOLD_MS` (450 ms) to **va bank**: cały kapitał drużyny idzie do puli i licytacja **kończy się od razu**, a drużyna z va bankiem odpowiada. Va bank jest niedozwolony (nic się nie dzieje), jeśli wkład drużyny po wrzuceniu całego kapitału nie byłby ściśle wyższy od najwyższego wkładu innej drużyny. Dlatego remis ani przegrana va banku nie występują.
    - **Spacja** kończy licytację. Nic się nie stanie, jeśli nikt jeszcze nie licytował.
-   - Zwycięzca licytacji: spośród drużyn z va bankiem wygrywa ta z największym wkładem. Jeśli nikt nie dał va banku, wygrywa drużyna z największym wkładem (przy remisie ta z niższym numerem).
+   - Zwycięzca licytacji to `leaderIdx`, czyli drużyna, która ostatnio ściśle przebiła wszystkich pozostałych (zwykłym przebiciem albo va bankiem).
 2. **`answering` (odpowiedź)**
    - Wyłoniona drużyna (`answeringTeamId`) odpowiada na pytanie, które prowadzący zadaje poza aplikacją.
    - Odpowiedź dobra: prowadzący naciska **klawisz tej drużyny**. Drużyna dostaje całą pulę, a zaczyna się nowa licytacja. Klawisze innych drużyn są w tej fazie ignorowane.
    - Odpowiedź błędna: **spacja**. Pula zostaje nietknięta i zaczyna się nowa licytacja, więc pula przechodzi na następne pytanie.
 
-Wkłady (`contributions`) i flagi `allIn` zerują się przy każdej nowej licytacji, a pula (`pool`) tylko po wygranej. Drużyna z kapitałem 0 dostaje klasę `eliminated` (tylko wizualnie, gra jej nie blokuje).
+Wkłady (`contributions`) i `leaderIdx` zerują się przy każdej nowej licytacji, a pula (`pool`) tylko po wygranej. Drużyna z kapitałem 0 dostaje klasę `eliminated` (tylko wizualnie, gra jej nie blokuje).
 
 ## Szczegóły implementacji, o które łatwo się potknąć
 

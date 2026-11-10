@@ -20,7 +20,7 @@
   const contributionsRow = document.getElementById('contributions-row');
   const teamsRow = document.getElementById('teams-row');
 
-  /** @type {{teams: {name:string, color:string, capital:number}[], phase: 'bidding'|'answering', pool:number, contributions:number[], allIn:boolean[], answeringTeamId: number|null}} */
+  /** @type {{teams: {name:string, color:string, capital:number}[], phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
 
   function keyLabelForIndex(i) {
@@ -85,7 +85,7 @@
       phase: 'bidding',
       pool: 0,
       contributions: teams.map(() => 0),
-      allIn: teams.map(() => false),
+      leaderIdx: null,
       answeringTeamId: null,
     };
 
@@ -107,43 +107,44 @@
 
   // ---------- Game logic ----------
 
+  function maxOtherContribution(idx) {
+    return Math.max(0, ...state.contributions.filter((_, i) => i !== idx));
+  }
+
+  // Wkład drużyny staje się o `amount` większy od najwyższego wkładu innej drużyny.
+  // Nic się nie dzieje, jeśli drużyna już prowadzi albo nie stać jej na przebicie.
   function bid(idx, amount) {
     const team = state.teams[idx];
-    const actual = Math.min(amount, team.capital);
-    if (actual <= 0) return;
-    team.capital -= actual;
-    state.pool += actual;
-    state.contributions[idx] += actual;
+    const target = maxOtherContribution(idx) + amount;
+    const needed = target - state.contributions[idx];
+    if (needed <= 0 || needed > team.capital) return;
+    team.capital -= needed;
+    state.pool += needed;
+    state.contributions[idx] = target;
+    state.leaderIdx = idx;
     bumpPool();
     render();
   }
 
+  // Va bank: cały kapitał do puli i natychmiastowy koniec licytacji, odpowiada ta drużyna.
+  // Niedozwolony, gdy po wrzuceniu całego kapitału wkład drużyny nie byłby wyższy
+  // od najwyższego wkładu innej drużyny.
   function vaBanque(idx) {
     const team = state.teams[idx];
     const actual = team.capital;
     if (actual <= 0) return;
+    if (state.contributions[idx] + actual <= maxOtherContribution(idx)) return;
     team.capital = 0;
     state.pool += actual;
     state.contributions[idx] += actual;
-    state.allIn[idx] = true;
+    state.leaderIdx = idx;
     bumpPool();
-    render();
+    endBidding();
   }
 
   function endBidding() {
-    const candidates = state.teams.map((_, i) => i).filter((i) => state.allIn[i]);
-    let winnerIdx;
-    if (candidates.length > 0) {
-      winnerIdx = candidates.reduce(
-        (best, i) => (state.contributions[i] > state.contributions[best] ? i : best),
-        candidates[0]
-      );
-    } else {
-      const maxVal = Math.max(...state.contributions);
-      if (maxVal <= 0) return; // nobody bid yet
-      winnerIdx = state.contributions.indexOf(maxVal);
-    }
-    state.answeringTeamId = winnerIdx;
+    if (state.leaderIdx === null) return; // nobody bid yet
+    state.answeringTeamId = state.leaderIdx;
     state.phase = 'answering';
     render();
   }
@@ -158,7 +159,7 @@
     state.phase = 'bidding';
     state.answeringTeamId = null;
     state.contributions = state.teams.map(() => 0);
-    state.allIn = state.teams.map(() => false);
+    state.leaderIdx = null;
     render();
   }
 
@@ -247,7 +248,7 @@
     if (state.phase === 'bidding') {
       state.teams.forEach((team, i) => {
         const box = document.createElement('div');
-        box.className = 'contribution-box' + (state.allIn[i] ? ' all-in' : '');
+        box.className = 'contribution-box';
         box.style.borderColor = team.color;
         box.innerHTML = `<div class="amount">${fmt(state.contributions[i])}</div>`;
         contributionsRow.appendChild(box);
