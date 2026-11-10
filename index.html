@@ -31,7 +31,7 @@
 <div id="game-screen" class="screen hidden">
   <button id="new-game-btn" class="corner-btn">Nowa gra</button>
   <button id="help-btn" class="corner-btn help">?</button>
-  <button id="penalty-btn" class="corner-btn">Kara (K)</button>
+  <button id="penalty-btn" class="corner-btn">Płatność (K)</button>
 
   <div id="help-panel" class="hidden">
     <h3>Zasady klawiatury</h3>
@@ -40,7 +40,7 @@
       <li><strong>przytrzymaj 1–0</strong> &mdash; VA BANK (cały kapitał drużyny do puli, kończy licytację; tylko jeśli przebija najwyższy wkład)</li>
       <li><strong>SPACJA</strong> &mdash; początek rundy: pobiera wpisowe / w licytacji: kończy ją / po odpowiedzi: odpowiedź była błędna (od razu nowa runda)</li>
       <li>po wyłonieniu odpowiadającej drużyny: naciśnij jej klawisz &mdash; wygrywa całą pulę</li>
-      <li><strong>K</strong> albo przycisk „Kara" &mdash; tryb kary: wybierz drużynę (klawisz lub klik w ramkę), wpisz kwotę i naciśnij Enter; Esc anuluje</li>
+      <li><strong>K</strong> albo przycisk „Płatność" &mdash; kara lub podpowiedź: wybierz drużynę (klawisz lub klik w ramkę), wpisz kwotę i naciśnij Enter; Esc anuluje</li>
       <li><strong>mysz</strong> &mdash; klik w ramkę drużyny działa jak jej klawisz (przytrzymanie = va bank), a przycisk pod pulą jak SPACJA</li>
     </ul>
   </div>
@@ -52,12 +52,12 @@
   </div>
 
   <div id="penalty-panel" class="hidden">
-    <h3>Kara</h3>
+    <h3>Płatność</h3>
     <p class="penalty-hint">Wybierz drużynę klawiszem lub kliknięciem w jej ramkę.</p>
     <div id="penalty-team">Nie wybrano drużyny</div>
-    <label for="penalty-amount">Kwota kary</label>
+    <label for="penalty-amount">Kwota płatności</label>
     <input type="number" id="penalty-amount" min="1" step="100" value="500">
-    <button id="penalty-apply" type="button" disabled>Nałóż karę</button>
+    <button id="penalty-apply" type="button" disabled>Pobierz płatność</button>
     <button id="penalty-cancel" type="button">Anuluj (Esc)</button>
   </div>
 
