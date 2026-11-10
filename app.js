@@ -11,6 +11,7 @@
   const gameScreen = document.getElementById('game-screen');
   const teamCountInput = document.getElementById('team-count');
   const startingCapitalInput = document.getElementById('starting-capital');
+  const anteInput = document.getElementById('ante');
   const teamNamesList = document.getElementById('team-names-list');
   const startBtn = document.getElementById('start-btn');
   const newGameBtn = document.getElementById('new-game-btn');
@@ -20,7 +21,7 @@
   const contributionsRow = document.getElementById('contributions-row');
   const teamsRow = document.getElementById('teams-row');
 
-  /** @type {{teams: {name:string, color:string, capital:number}[], phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
+  /** @type {{teams: {name:string, color:string, capital:number}[], ante:number, phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
 
   function keyLabelForIndex(i) {
@@ -73,6 +74,7 @@
   startBtn.addEventListener('click', () => {
     const count = clampTeamCount(Number(teamCountInput.value));
     const capital = Math.max(0, Number(startingCapitalInput.value) || 0);
+    const ante = Math.max(0, Number(anteInput.value) || 0);
     const teams = [];
     for (let i = 0; i < count; i++) {
       const input = document.getElementById(`team-name-${i}`);
@@ -82,6 +84,7 @@
 
     state = {
       teams,
+      ante,
       phase: 'bidding',
       pool: 0,
       contributions: teams.map(() => 0),
@@ -89,6 +92,7 @@
       answeringTeamId: null,
     };
 
+    collectAnte();
     setupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     render();
@@ -155,11 +159,23 @@
     startNewBiddingRound();
   }
 
+  // Wpisowe: na początku każdej rundy każda drużyna automatycznie wpłaca do puli
+  // tyle samo (albo cały swój kapitał, jeśli ma mniej). Nie liczy się do wkładów w licytacji.
+  function collectAnte() {
+    state.teams.forEach((team) => {
+      const paid = Math.min(state.ante, team.capital);
+      team.capital -= paid;
+      state.pool += paid;
+    });
+  }
+
   function startNewBiddingRound() {
     state.phase = 'bidding';
     state.answeringTeamId = null;
     state.contributions = state.teams.map(() => 0);
     state.leaderIdx = null;
+    collectAnte();
+    bumpPool();
     render();
   }
 

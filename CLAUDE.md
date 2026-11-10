@@ -19,7 +19,9 @@ Projekt jest jednym z dwóch folderów w `Awantura o Kredyty/`:
 
 ## Zasady gry (jak działa aplikacja)
 
-Ekran startowy: liczba drużyn (1–10), nazwy drużyn (domyślnie „Drużyna N"), kapitał początkowy każdej drużyny (domyślnie 1000). Każda drużyna ma kolor z `PALETTE` i klawisz: drużyny 1–9 to klawisze `1`–`9`, dziesiąta to `0`.
+Ekran startowy: liczba drużyn (1–10), nazwy drużyn (domyślnie „Drużyna N"), kapitał początkowy każdej drużyny (domyślnie 10000) i **wpisowe** (domyślnie 500). Każda drużyna ma kolor z `PALETTE` i klawisz: drużyny 1–9 to klawisze `1`–`9`, dziesiąta to `0`.
+
+**Wpisowe** (`state.ante`, `collectAnte()`): na początku każdej rundy, czyli przy starcie gry i przy każdej nowej licytacji (po dobrej albo złej odpowiedzi), każda drużyna automatycznie wpłaca do puli wpisowe, niezależnie od tego, czy chce. Drużyna z mniejszym kapitałem wpłaca tyle, ile ma. Wpisowe nie wlicza się do wkładów (`contributions`) w licytacji, tylko zwiększa pulę.
 
 Gra ma dwie fazy (`state.phase`):
 
