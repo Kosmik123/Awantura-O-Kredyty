@@ -290,7 +290,7 @@
       state.teams.forEach((team, i) => {
         const box = document.createElement('div');
         box.className = 'contribution-box';
-        box.style.background = team.color;
+        box.style.setProperty('--team-color', team.color);
         if (team.eliminated) box.classList.add('eliminated');
         box.innerHTML = `<div class="amount">${fmt(state.contributions[i])}</div>`;
         contributionsRow.appendChild(box);
@@ -302,7 +302,7 @@
       const box = document.createElement('div');
       const isAnswering = state.phase === 'answering' && i === state.answeringTeamId;
       box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.eliminated ? ' eliminated' : '');
-      box.style.background = team.color;
+      box.style.setProperty('--team-color', team.color);
 
       const badge = document.createElement('div');
       badge.className = 'team-key-badge';

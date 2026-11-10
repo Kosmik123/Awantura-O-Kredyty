@@ -193,6 +193,13 @@ html, body {
   text-align: center;
   color: #ffffff;
   text-shadow: 0 2px 4px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9);
+  /* kolor drużyny w środku, ciemniejszy u góry i u dołu */
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--team-color) 60%, black),
+    var(--team-color) 50%,
+    color-mix(in srgb, var(--team-color) 60%, black)
+  );
   border: 2px solid #ffffff;
   position: relative;
   min-width: 0;
