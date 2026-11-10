@@ -290,8 +290,8 @@
       state.teams.forEach((team, i) => {
         const box = document.createElement('div');
         box.className = 'contribution-box';
-        box.style.borderColor = team.eliminated ? '#888888' : team.color;
-        if (team.eliminated) box.style.opacity = '0.4';
+        box.style.background = team.color;
+        if (team.eliminated) box.classList.add('eliminated');
         box.innerHTML = `<div class="amount">${fmt(state.contributions[i])}</div>`;
         contributionsRow.appendChild(box);
       });
@@ -302,7 +302,7 @@
       const box = document.createElement('div');
       const isAnswering = state.phase === 'answering' && i === state.answeringTeamId;
       box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.eliminated ? ' eliminated' : '');
-      box.style.borderColor = team.eliminated ? '#888888' : isAnswering ? '#ffffff' : team.color;
+      box.style.background = team.color;
 
       const badge = document.createElement('div');
       badge.className = 'team-key-badge';
@@ -316,7 +316,6 @@
 
       const capital = document.createElement('div');
       capital.className = 'capital';
-      capital.style.color = team.eliminated ? '#888888' : team.color;
       capital.textContent = fmt(team.capital);
       box.appendChild(capital);
 

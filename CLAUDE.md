@@ -46,4 +46,5 @@ Wkłady (`contributions`) i `leaderIdx` zerują się przy wejściu w każdą now
 - Obsługa klawiszy zapamiętuje fazę gry z momentu `keydown` (`keyRecords`), bo nagroda na `keydown` od razu zmienia fazę na `waiting` i `keyup` tego samego klawisza nie może wtedy wrzucić 100 kredytów do nowej puli.
 - `e.repeat` jest ignorowane, żeby przytrzymanie nie spamowało licytacji.
 - Stan gry jest tylko w pamięci (`state`), bez zapisu. Przycisk „Nowa gra" czyści go i wraca do ekranu startowego. `?` pokazuje panel z zasadami klawiatury.
+- Styl kolumn drużyn (`.team-box`, `.contribution-box`): prostokąty bez zaokrągleń, biała ramka i biały tekst, wypełnienie kolorem drużyny (`team.color`, ustawiane inline w `render()`). Przegrana drużyna jest wyszarzona filtrem CSS (`.eliminated`).
 - Teksty w interfejsie są po polsku, a liczby formatowane przez `toLocaleString('pl-PL')`.
