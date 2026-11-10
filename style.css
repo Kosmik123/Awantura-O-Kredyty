@@ -267,4 +267,5 @@ html, body {
 
 .team-box.eliminated {
   opacity: 0.4;
+  filter: grayscale(1);
 }

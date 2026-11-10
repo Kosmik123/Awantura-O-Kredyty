@@ -21,7 +21,7 @@
   const contributionsRow = document.getElementById('contributions-row');
   const teamsRow = document.getElementById('teams-row');
 
-  /** @type {{teams: {name:string, color:string, capital:number}[], ante:number, phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
+  /** @type {{teams: {name:string, color:string, capital:number, eliminated:boolean}[], ante:number, phase: 'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
 
   function keyLabelForIndex(i) {
@@ -79,7 +79,7 @@
     for (let i = 0; i < count; i++) {
       const input = document.getElementById(`team-name-${i}`);
       const name = (input && input.value.trim()) || `Drużyna ${i + 1}`;
-      teams.push({ name, color: PALETTE[i], capital });
+      teams.push({ name, color: PALETTE[i], capital, eliminated: false });
     }
 
     state = {
@@ -159,11 +159,21 @@
     startNewBiddingRound();
   }
 
-  // Wpisowe: na początku każdej rundy każda drużyna automatycznie wpłaca do puli
-  // tyle samo (albo cały swój kapitał, jeśli ma mniej). Nie liczy się do wkładów w licytacji.
-  function collectAnte() {
+  // Drużyna, która nie ma co najmniej wpisowego + BID_STEP, nie jest w stanie
+  // wziąć udziału w licytacji nawet po wpłaceniu wpisowego, więc przegrywa (na stałe).
+  function eliminateBrokeTeams() {
     state.teams.forEach((team) => {
-      const paid = Math.min(state.ante, team.capital);
+      if (team.capital < state.ante + BID_STEP) team.eliminated = true;
+    });
+  }
+
+  // Wpisowe: na początku każdej rundy każda drużyna, która jeszcze gra, automatycznie
+  // wpłaca do puli tyle samo. Nie liczy się do wkładów w licytacji.
+  function collectAnte() {
+    eliminateBrokeTeams();
+    state.teams.forEach((team) => {
+      if (team.eliminated) return;
+      const paid = state.ante;
       team.capital -= paid;
       state.pool += paid;
     });
@@ -214,6 +224,7 @@
 
     const idx = keyToTeamIndex(e.key);
     if (idx === -1 || idx >= state.teams.length) return;
+    if (state.teams[idx].eliminated) return;
     if (e.repeat) return;
     if (keysPhysicallyDown.has(e.key)) return;
     keysPhysicallyDown.add(e.key);
@@ -265,7 +276,8 @@
       state.teams.forEach((team, i) => {
         const box = document.createElement('div');
         box.className = 'contribution-box';
-        box.style.borderColor = team.color;
+        box.style.borderColor = team.eliminated ? '#888888' : team.color;
+        if (team.eliminated) box.style.opacity = '0.4';
         box.innerHTML = `<div class="amount">${fmt(state.contributions[i])}</div>`;
         contributionsRow.appendChild(box);
       });
@@ -275,8 +287,8 @@
     state.teams.forEach((team, i) => {
       const box = document.createElement('div');
       const isAnswering = state.phase === 'answering' && i === state.answeringTeamId;
-      box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.capital <= 0 ? ' eliminated' : '');
-      box.style.borderColor = isAnswering ? '#ffffff' : team.color;
+      box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.eliminated ? ' eliminated' : '');
+      box.style.borderColor = team.eliminated ? '#888888' : isAnswering ? '#ffffff' : team.color;
 
       const badge = document.createElement('div');
       badge.className = 'team-key-badge';
@@ -290,7 +302,7 @@
 
       const capital = document.createElement('div');
       capital.className = 'capital';
-      capital.style.color = team.color;
+      capital.style.color = team.eliminated ? '#888888' : team.color;
       capital.textContent = fmt(team.capital);
       box.appendChild(capital);
 

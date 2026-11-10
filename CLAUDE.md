@@ -23,6 +23,8 @@ Ekran startowy: liczba drużyn (1–10), nazwy drużyn (domyślnie „Drużyna N
 
 **Wpisowe** (`state.ante`, `collectAnte()`): na początku każdej rundy, czyli przy starcie gry i przy każdej nowej licytacji (po dobrej albo złej odpowiedzi), każda drużyna automatycznie wpłaca do puli wpisowe, niezależnie od tego, czy chce. Drużyna z mniejszym kapitałem wpłaca tyle, ile ma. Wpisowe nie wlicza się do wkładów (`contributions`) w licytacji, tylko zwiększa pulę.
 
+**Przegrana drużyna** (`team.eliminated`, `eliminateBrokeTeams()`): przy starcie każdej rundy, przed pobraniem wpisowego, drużyna z kapitałem mniejszym niż wpisowe + `BID_STEP` (np. poniżej 600 przy wpisowym 500) przegrywa na stałe, bo po wpłaceniu wpisowego nie mogłaby już nic dać do licytacji. Nie płaci wpisowego, jej klawisz jest ignorowany, a jej ramka i kapitał są wyszarzone. Pozostały jej kapitał zostaje na ekranie.
+
 Gra ma dwie fazy (`state.phase`):
 
 1. **`bidding` (licytacja)**
@@ -36,7 +38,7 @@ Gra ma dwie fazy (`state.phase`):
    - Odpowiedź dobra: prowadzący naciska **klawisz tej drużyny**. Drużyna dostaje całą pulę, a zaczyna się nowa licytacja. Klawisze innych drużyn są w tej fazie ignorowane.
    - Odpowiedź błędna: **spacja**. Pula zostaje nietknięta i zaczyna się nowa licytacja, więc pula przechodzi na następne pytanie.
 
-Wkłady (`contributions`) i `leaderIdx` zerują się przy każdej nowej licytacji, a pula (`pool`) tylko po wygranej. Drużyna z kapitałem 0 dostaje klasę `eliminated` (tylko wizualnie, gra jej nie blokuje).
+Wkłady (`contributions`) i `leaderIdx` zerują się przy każdej nowej licytacji, a pula (`pool`) tylko po wygranej. Gra nie kończy się sama, gdy zostanie jedna drużyna.
 
 ## Szczegóły implementacji, o które łatwo się potknąć
 
