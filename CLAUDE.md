@@ -41,9 +41,15 @@ Gra ma trzy fazy (`state.phase`):
 
 Wkłady (`contributions`) i `leaderIdx` zerują się przy wejściu w każdą nową rundę, a pula (`pool`) tylko po wygranej. Gra nie kończy się sama, gdy zostanie jedna drużyna.
 
+## Kara i sterowanie myszą
+
+- **Kara**: klawisz `K` albo przycisk „Kara (K)" włącza tryb kary (`penalty.active`) i otwiera panel boczny z polem kwoty (domyślnie 500) i przyciskiem „Nałóż karę". Przycisk jest nieaktywny, dopóki nie wybrano drużyny (i kwoty > 0). Drużynę wybiera się klawiszem cyfry albo kliknięciem w jej ramkę (w trybie kary klik/klawisz drużyny **wybiera**, a nie licytuje). Po wyborze fokus trafia do pola kwoty; `Enter` nakłada karę, `Esc` albo „Anuluj" anulują. Kara działa w każdej fazie, zabiera pieniądze z konta drużyny (nie więcej, niż drużyna ma), a pieniądze **znikają z gry** (nie trafiają do puli). Przegrana po karze sprawdzana jest dopiero przy wejściu w następną rundę. W trybie kary spacja jest ignorowana.
+- **Mysz**: wszystko da się robić myszą. Klik w ramkę drużyny (kolumnę ze stanem albo pole wkładu) działa jak klawisz tej drużyny (`pressTeam`/`releaseTeam`, wspólne dla klawiatury i myszy): krótki klik to przebicie, przytrzymanie to va bank, a w fazie odpowiedzi klik odpowiadającej drużyny to dobra odpowiedź. Przycisk pod pulą (`#action-btn`) działa jak spacja i zmienia podpis zależnie od fazy.
+
 ## Szczegóły implementacji, o które łatwo się potknąć
 
-- Obsługa klawiszy zapamiętuje fazę gry z momentu `keydown` (`keyRecords`), bo nagroda na `keydown` od razu zmienia fazę na `waiting` i `keyup` tego samego klawisza nie może wtedy wrzucić 100 kredytów do nowej puli.
+- Obsługa klawiszy i myszy zapamiętuje fazę gry z momentu naciśnięcia (`pressed`), bo nagroda na `keydown` od razu zmienia fazę na `waiting` i `keyup` tego samego klawisza nie może wtedy wrzucić 100 kredytów do nowej puli.
+- Ramki są odtwarzane przy każdym `render()`, więc mysz obsługują delegowane listenery na `#teams-row` i `#contributions-row` (po `data-team-index`), a zwolnienie nasłuchuje `window`. Przyciski tracą fokus po kliknięciu, żeby późniejsza spacja ich nie aktywowała.
 - `e.repeat` jest ignorowane, żeby przytrzymanie nie spamowało licytacji.
 - Stan gry jest tylko w pamięci (`state`), bez zapisu. Przycisk „Nowa gra" czyści go i wraca do ekranu startowego. `?` pokazuje panel z zasadami klawiatury.
 - Styl kolumn drużyn (`.team-box`, `.contribution-box`): razem tworzą jedną tabelę (bez odstępów, sąsiednie ramki współdzielą brzeg, wiersz wkładów styka się z wierszem drużyn), prostokąty bez zaokrągleń, biała ramka i biały tekst z ciemnym cieniem (`text-shadow`, dla czytelności na jasnych kolorach), wypełnienie to pionowy gradient: kolor drużyny w środku, o 40% ciemniejszy u góry i u dołu (`color-mix` ze zmienną CSS `--team-color` ustawianą w `render()`). Przegrana drużyna jest wyszarzona filtrem CSS (`.eliminated`).

@@ -308,3 +308,93 @@ html, body {
   opacity: 0.4;
   filter: grayscale(1);
 }
+
+/* ---------- Mysz, przycisk akcji i tryb kary ---------- */
+
+.teams-row {
+  user-select: none;
+}
+
+.team-box, .contribution-box {
+  cursor: pointer;
+}
+
+#penalty-btn { right: 13.5rem; }
+
+#action-btn {
+  margin-top: 1.5rem;
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 2px solid #ffffff;
+  padding: 0.8rem 2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#penalty-panel {
+  position: absolute;
+  top: 3.5rem;
+  right: 1rem;
+  width: 280px;
+  background: var(--panel-bg);
+  border: 2px solid #ff4d4d;
+  padding: 1rem 1.25rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#penalty-panel h3 { margin: 0; color: #ff4d4d; }
+#penalty-panel .penalty-hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
+
+#penalty-team {
+  font-weight: 700;
+  padding: 0.4rem 0.6rem;
+  border: 2px dashed #2a3360;
+}
+
+#penalty-panel input {
+  font-size: 1.2rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid #2a3360;
+}
+
+#penalty-panel button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid #2a3360;
+}
+
+#penalty-apply {
+  background: #c90000 !important;
+  border-color: #ff4d4d !important;
+}
+
+#penalty-panel button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Ramka wybrana do ukarania */
+.team-box.penalty-selected,
+.contribution-box.penalty-selected {
+  box-shadow: inset 0 0 0 8px #ff4d4d;
+}
+
+.penalty-mode .team-box:not(.eliminated),
+.penalty-mode .contribution-box:not(.eliminated) {
+  cursor: crosshair;
+}

@@ -20,11 +20,20 @@
   const poolAmountEl = document.getElementById('pool-amount');
   const contributionsRow = document.getElementById('contributions-row');
   const teamsRow = document.getElementById('teams-row');
+  const actionBtn = document.getElementById('action-btn');
+  const penaltyBtn = document.getElementById('penalty-btn');
+  const penaltyPanel = document.getElementById('penalty-panel');
+  const penaltyTeamEl = document.getElementById('penalty-team');
+  const penaltyAmountInput = document.getElementById('penalty-amount');
+  const penaltyApplyBtn = document.getElementById('penalty-apply');
+  const penaltyCancelBtn = document.getElementById('penalty-cancel');
 
   /** @type {{teams: {name:string, color:string, capital:number, eliminated:boolean}[], ante:number, phase: 'waiting'|'bidding'|'answering', pool:number, contributions:number[], leaderIdx: number|null, answeringTeamId: number|null}} */
   let state = null;
   // Wkłady z poprzedniego renderu: drużyna, której wkład wzrósł, dostaje animację bounce.
   let lastContributions = null;
+  // Tryb kary: klawisz K albo przycisk. W tym trybie klawisz/klik drużyny ją wybiera zamiast licytować.
+  const penalty = { active: false, teamIdx: null };
 
   function keyLabelForIndex(i) {
     return i === 9 ? '0' : String(i + 1);
@@ -102,6 +111,9 @@
   });
 
   newGameBtn.addEventListener('click', () => {
+    closePenalty();
+    pressed.forEach((r) => clearTimeout(r.timer));
+    pressed.clear();
     state = null;
     gameScreen.classList.add('hidden');
     helpPanel.classList.add('hidden');
@@ -201,7 +213,7 @@
   }
 
   function handleSpace() {
-    if (!state) return;
+    if (!state || penalty.active) return;
     if (state.phase === 'waiting') {
       startBidding();
     } else if (state.phase === 'bidding') {
@@ -220,32 +232,86 @@
     poolAmountEl.classList.add('bump');
   }
 
-  // ---------- Keyboard handling ----------
+  // ---------- Kara ----------
 
-  // Per physical key: records the game phase at the moment it was pressed,
-  // so keyup acts on that decision even if the phase changed in between
-  // (e.g. awarding the pool on keydown immediately starts a new bidding round).
-  const keysPhysicallyDown = new Set();
-  const keyRecords = new Map();
-
-  window.addEventListener('keydown', (e) => {
+  function openPenalty() {
     if (!state) return;
+    // przerwij wciśnięte właśnie klawisze/przyciski drużyn, żeby nie odpaliły va banku
+    pressed.forEach((r) => clearTimeout(r.timer));
+    pressed.clear();
+    penalty.active = true;
+    penalty.teamIdx = null;
+    penaltyPanel.classList.remove('hidden');
+    render();
+  }
 
-    if (e.key === ' ') {
-      e.preventDefault();
-      if (!e.repeat) handleSpace();
+  function closePenalty() {
+    penalty.active = false;
+    penalty.teamIdx = null;
+    penaltyPanel.classList.add('hidden');
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    render();
+  }
+
+  function togglePenalty() {
+    if (penalty.active) closePenalty();
+    else openPenalty();
+  }
+
+  function selectPenaltyTeam(idx) {
+    penalty.teamIdx = idx;
+    penaltyAmountInput.focus();
+    penaltyAmountInput.select();
+    render();
+  }
+
+  function penaltyAmount() {
+    return Math.floor(Number(penaltyAmountInput.value));
+  }
+
+  function canApplyPenalty() {
+    return penalty.active && penalty.teamIdx !== null && penaltyAmount() > 0;
+  }
+
+  // Kara zabiera pieniądze z konta drużyny (nie więcej, niż drużyna ma); pieniądze znikają z gry.
+  function applyPenalty() {
+    if (!canApplyPenalty()) return;
+    const team = state.teams[penalty.teamIdx];
+    team.capital -= Math.min(penaltyAmount(), team.capital);
+    closePenalty();
+  }
+
+  penaltyBtn.addEventListener('click', togglePenalty);
+  penaltyCancelBtn.addEventListener('click', closePenalty);
+  penaltyApplyBtn.addEventListener('click', applyPenalty);
+  penaltyAmountInput.addEventListener('input', updatePenaltyUi);
+
+  function updatePenaltyUi() {
+    if (!state) return;
+    const selected = penalty.teamIdx === null ? null : state.teams[penalty.teamIdx];
+    penaltyTeamEl.textContent = selected ? selected.name : 'Nie wybrano drużyny';
+    penaltyTeamEl.style.borderColor = selected ? selected.color : '';
+    penaltyApplyBtn.disabled = !canApplyPenalty();
+  }
+
+  // ---------- Input handling (klawiatura i mysz) ----------
+
+  // Per key / pointer: records the game phase at the moment it was pressed,
+  // so release acts on that decision even if the phase changed in between
+  // (e.g. awarding the pool on press immediately starts a new round).
+  const pressed = new Map();
+
+  function pressTeam(inputId, idx) {
+    if (!state || idx < 0 || idx >= state.teams.length) return;
+    if (state.teams[idx].eliminated) return;
+    if (penalty.active) {
+      selectPenaltyTeam(idx);
       return;
     }
+    if (pressed.has(inputId)) return;
 
-    const idx = keyToTeamIndex(e.key);
-    if (idx === -1 || idx >= state.teams.length) return;
-    if (state.teams[idx].eliminated) return;
-    if (e.repeat) return;
-    if (keysPhysicallyDown.has(e.key)) return;
-    keysPhysicallyDown.add(e.key);
-
-    const record = { phase: state.phase, vaBanque: false, timer: null };
-    keyRecords.set(e.key, record);
+    const record = { idx, phase: state.phase, vaBanque: false, timer: null };
+    pressed.set(inputId, record);
 
     if (record.phase === 'answering') {
       if (idx === state.answeringTeamId) {
@@ -260,39 +326,127 @@
       record.vaBanque = true;
       vaBanque(idx);
     }, HOLD_MS);
+  }
+
+  function releaseTeam(inputId) {
+    const record = pressed.get(inputId);
+    pressed.delete(inputId);
+    if (!record) return;
+    if (record.timer) clearTimeout(record.timer);
+    if (!state) return;
+
+    if (record.phase === 'bidding' && !record.vaBanque) {
+      bid(record.idx, BID_STEP);
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (!state) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // pole kwoty kary: Enter nakłada karę, Esc anuluje, reszta to zwykłe pisanie
+    if (e.target instanceof HTMLInputElement) {
+      if (penalty.active && e.key === 'Enter') {
+        e.preventDefault();
+        applyPenalty();
+      } else if (penalty.active && e.key === 'Escape') {
+        closePenalty();
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (penalty.active) closePenalty();
+      return;
+    }
+
+    if (e.key === 'k' || e.key === 'K') {
+      e.preventDefault();
+      if (!e.repeat) togglePenalty();
+      return;
+    }
+
+    if (e.key === 'Enter' && penalty.active) {
+      e.preventDefault();
+      applyPenalty();
+      return;
+    }
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (!e.repeat) handleSpace();
+      return;
+    }
+
+    if (e.repeat) return;
+    const idx = keyToTeamIndex(e.key);
+    if (idx !== -1) pressTeam(e.key, idx);
   });
 
   window.addEventListener('keyup', (e) => {
-    if (e.key === ' ') return;
-
-    const idx = keyToTeamIndex(e.key);
-    keysPhysicallyDown.delete(e.key);
-
-    const record = keyRecords.get(e.key);
-    keyRecords.delete(e.key);
-    if (!record) return;
-    if (record.timer) clearTimeout(record.timer);
-
-    if (!state || idx === -1 || idx >= state.teams.length) return;
-
-    if (record.phase === 'bidding' && !record.vaBanque) {
-      bid(idx, BID_STEP);
+    if (e.key === ' ') {
+      // nie pozwól, by spacja "kliknęła" przycisk, który ma fokus
+      if (!(e.target instanceof HTMLInputElement)) e.preventDefault();
+      return;
     }
+    releaseTeam(e.key);
+  });
+
+  // Mysz: klik w ramkę (wkład albo drużyna) działa jak klawisz drużyny, przytrzymanie = va bank.
+  function onTeamPointerDown(e) {
+    if (e.button !== 0) return;
+    const el = e.target.closest('[data-team-index]');
+    if (!el) return;
+    e.preventDefault();
+    pressTeam('pointer', Number(el.dataset.teamIndex));
+  }
+
+  [teamsRow, contributionsRow].forEach((row) => {
+    row.addEventListener('pointerdown', onTeamPointerDown);
+    // bez tego klik w ramkę zabierałby fokus polu kwoty kary
+    row.addEventListener('mousedown', (e) => e.preventDefault());
+  });
+  window.addEventListener('pointerup', () => releaseTeam('pointer'));
+  window.addEventListener('pointercancel', () => releaseTeam('pointer'));
+
+  // Przycisk pod pulą działa jak spacja.
+  actionBtn.addEventListener('click', handleSpace);
+
+  // Przyciski nie zatrzymują fokusu, żeby późniejsza spacja nie aktywowała ich ponownie.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('button');
+    if (btn) btn.blur();
   });
 
   // ---------- Rendering ----------
+
+  const ACTION_LABELS = {
+    waiting: 'Pobierz wpisowe (spacja)',
+    bidding: 'Zakończ licytację (spacja)',
+    answering: 'Zła odpowiedź (spacja)',
+  };
+
+  function renderActionButton() {
+    actionBtn.textContent = ACTION_LABELS[state.phase];
+    // nie da się zakończyć licytacji, w której nikt jeszcze nie przebił
+    actionBtn.disabled = penalty.active || (state.phase === 'bidding' && state.leaderIdx === null);
+  }
 
   function render() {
     if (!state) return;
 
     poolAmountEl.textContent = fmt(state.pool);
+    gameScreen.classList.toggle('penalty-mode', penalty.active);
+    renderActionButton();
+    updatePenaltyUi();
 
     contributionsRow.classList.toggle('hidden', state.phase !== 'bidding');
     contributionsRow.innerHTML = '';
     if (state.phase === 'bidding') {
       state.teams.forEach((team, i) => {
         const box = document.createElement('div');
-        box.className = 'contribution-box';
+        box.className = 'contribution-box' + (penalty.teamIdx === i ? ' penalty-selected' : '');
+        box.dataset.teamIndex = i;
         box.style.setProperty('--team-color', team.color);
         if (team.eliminated) box.classList.add('eliminated');
         const increased = lastContributions && state.contributions[i] > lastContributions[i];
@@ -307,7 +461,8 @@
     state.teams.forEach((team, i) => {
       const box = document.createElement('div');
       const isAnswering = state.phase === 'answering' && i === state.answeringTeamId;
-      box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.eliminated ? ' eliminated' : '');
+      box.className = 'team-box' + (isAnswering ? ' answering' : '') + (team.eliminated ? ' eliminated' : '') + (penalty.teamIdx === i ? ' penalty-selected' : '');
+      box.dataset.teamIndex = i;
       box.style.setProperty('--team-color', team.color);
 
       const badge = document.createElement('div');
