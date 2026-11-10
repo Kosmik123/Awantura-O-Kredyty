@@ -115,14 +115,14 @@
     return Math.max(0, ...state.contributions.filter((_, i) => i !== idx));
   }
 
-  // Wkład drużyny staje się o `amount` większy od najwyższego wkładu innej drużyny.
-  // Nic się nie dzieje, jeśli drużyna już prowadzi albo nie stać jej na przebicie.
+  // Wkład drużyny staje się o `amount` większy od najwyższego wkładu w puli, także jej własnego
+  // (drużyna może przebijać samą siebie). Nic się nie dzieje, jeśli nie stać jej na przebicie.
   function bid(idx, amount) {
     if (state.phase !== 'bidding') return;
     const team = state.teams[idx];
-    const target = maxOtherContribution(idx) + amount;
+    const target = Math.max(state.contributions[idx], maxOtherContribution(idx)) + amount;
     const needed = target - state.contributions[idx];
-    if (needed <= 0 || needed > team.capital) return;
+    if (needed > team.capital) return;
     team.capital -= needed;
     state.pool += needed;
     state.contributions[idx] = target;

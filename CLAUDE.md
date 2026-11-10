@@ -29,8 +29,8 @@ Gra ma trzy fazy (`state.phase`):
 
 0. **`waiting` (początek rundy)**: `enterWaitingRound()` zeruje wkłady, ogłasza ewentualne przegrane. Gra czeka na **spację**, która pobiera wpisowe (`startBidding()`) i otwiera licytację. Klawisze drużyn są w tej fazie ignorowane. Tak zaczyna się też pierwsza runda po starcie gry.
 1. **`bidding` (licytacja)**
-   - Krótkie naciśnięcie klawisza drużyny to **przebicie**: wkład drużyny staje się o `BID_STEP` (100) większy od najwyższego wkładu *innej* drużyny (np. drużyna 1 ma 500, więc `2` daje drużynie 2 wkład 600, a do puli trafia tylko brakująca różnica). Liczy się przy puszczeniu klawisza.
-   - Nic się nie dzieje, gdy drużyna już prowadzi (nie można przebijać samego siebie) albo nie stać jej na przebicie (wtedy zostaje va bank). Przy jednej drużynie też nie da się przebić ponad pierwsze 100.
+   - Krótkie naciśnięcie klawisza drużyny to **przebicie**: wkład drużyny staje się o `BID_STEP` (100) większy od najwyższego wkładu w puli, także jej własnego (drużyna może przebijać samą siebie wielokrotnie). Do puli trafia tylko brakująca różnica, np. po wpisowym 500 pierwsze przebicie daje 600, kolejne kliknięcie tej samej drużyny 700. Liczy się przy puszczeniu klawisza.
+   - Nic się nie dzieje, gdy drużyny nie stać na przebicie (wtedy zostaje va bank). Przy jednej drużynie przebijanie też działa.
    - Przytrzymanie klawisza dłużej niż `HOLD_MS` (450 ms) to **va bank**: cały kapitał drużyny idzie do puli i licytacja **kończy się od razu**, a drużyna z va bankiem odpowiada. Va bank jest niedozwolony (nic się nie dzieje), jeśli wkład drużyny po wrzuceniu całego kapitału nie byłby ściśle wyższy od najwyższego wkładu innej drużyny. Dlatego remis ani przegrana va banku nie występują.
    - **Spacja** kończy licytację. Nic się nie stanie, jeśli nikt jeszcze nie licytował.
    - Zwycięzca licytacji to `leaderIdx`, czyli drużyna, która ostatnio ściśle przebiła wszystkich pozostałych (zwykłym przebiciem albo va bankiem).
