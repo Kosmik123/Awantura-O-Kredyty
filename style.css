@@ -192,6 +192,7 @@ html, body {
   padding: 0.6rem 0.4rem;
   text-align: center;
   color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9);
   border: 2px solid #ffffff;
   position: relative;
   min-width: 0;
