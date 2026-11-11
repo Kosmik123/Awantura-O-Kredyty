@@ -37,7 +37,7 @@ Gra ma trzy fazy (`state.phase`):
 2. **`answering` (odpowiedź)**
    - Wyłoniona drużyna (`answeringTeamId`) odpowiada na pytanie, które prowadzący zadaje poza aplikacją.
    - Odpowiedź dobra: prowadzący naciska **klawisz tej drużyny**. Drużyna dostaje całą pulę, a zaczyna się nowa runda w fazie `waiting` (wpisowe dopiero po spacji). Klawisze innych drużyn są w tej fazie ignorowane.
-   - Odpowiedź błędna: **spacja**. Pula zostaje nietknięta, a ta sama spacja od razu otwiera nową rundę i pobiera wpisowe (bez dodatkowej spacji), więc pula przechodzi na następne pytanie.
+   - Odpowiedź błędna: **spacja**. Pula zostaje nietknięta, a ta spacja tylko kończy pytanie i przechodzi do nowej rundy w fazie `waiting` (wpisowe dopiero po **osobnej** spacji), więc pula przechodzi na następne pytanie.
 
 Wkłady (`contributions`) i `leaderIdx` zerują się przy wejściu w każdą nową rundę, a pula (`pool`) tylko po wygranej. Gra nie kończy się sama, gdy zostanie jedna drużyna.
 

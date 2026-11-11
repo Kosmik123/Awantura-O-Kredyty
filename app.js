@@ -219,9 +219,8 @@
     } else if (state.phase === 'bidding') {
       endBidding();
     } else if (state.phase === 'answering') {
-      // zła odpowiedź: ta sama spacja otwiera kolejną rundę i pobiera wpisowe
+      // zła odpowiedź: koniec pytania, nowa runda czeka na osobną spację z wpisowym
       enterWaitingRound();
-      startBidding();
     }
   }
 
